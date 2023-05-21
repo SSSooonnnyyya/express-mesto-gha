@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const cardModel = require('../models/card');
 
 const getCards = (req, res) => {
@@ -25,7 +26,7 @@ const createCard = (req, res) => {
       res.status(201).send(card);
     })
     .catch((err) => {
-      if (err.message.startsWith('card validation failed')) {
+      if (err instanceof mongoose.Error.ValidationError) {
         res.status(400).send({
           message: 'Некорректные данные при создании карточки',
           err: err.message,
@@ -66,12 +67,16 @@ const likeCard = (req, res) => {
   )
     .then((dbCard) => res.send({ card: dbCard }))
     .catch((err) => {
-      if (err.message === 'NotFound') {
+      if (err instanceof mongoose.Error.CastError) {
         res.status(404).send({
           message: 'Карточка не найден',
         });
       }
-      res.status(500).send({ err });
+      res.status(500).send({
+        message: 'Internal Server Error',
+        err: err.message,
+        stack: err.stack,
+      });
     });
 };
 
@@ -83,12 +88,16 @@ const dislikeCard = (req, res) => {
   )
     .then((dbCard) => res.send({ card: dbCard }))
     .catch((err) => {
-      if (err.message === 'NotFound') {
+      if (err instanceof mongoose.Error.CastError) {
         res.status(404).send({
           message: 'Карточка не найден',
         });
       }
-      res.status(500).send({ err });
+      res.status(500).send({
+        message: 'Internal Server Error',
+        err: err.message,
+        stack: err.stack,
+      });
     });
 };
 
