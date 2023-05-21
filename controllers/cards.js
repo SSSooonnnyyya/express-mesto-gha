@@ -65,18 +65,27 @@ const likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then((dbCard) => res.send({ card: dbCard }))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
+    .then((dbCard) => {
+      if (dbCard) {
+        res.send({ card: dbCard });
+      } else {
         res.status(404).send({
-          message: 'Карточка не найден',
+          message: 'Карточка не найдена',
         });
       }
-      res.status(500).send({
-        message: 'Internal Server Error',
-        err: err.message,
-        stack: err.stack,
-      });
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        res.status(400).send({
+          message: 'Некорректный айди карточки',
+        });
+      } else {
+        res.status(500).send({
+          message: 'Internal Server Error',
+          err: err.message,
+          stack: err.stack,
+        });
+      }
     });
 };
 
@@ -86,18 +95,27 @@ const dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .then((dbCard) => res.send({ card: dbCard }))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
+    .then((dbCard) => {
+      if (dbCard) {
+        res.send({ card: dbCard });
+      } else {
         res.status(404).send({
-          message: 'Карточка не найден',
+          message: 'Карточка не найдена',
         });
       }
-      res.status(500).send({
-        message: 'Internal Server Error',
-        err: err.message,
-        stack: err.stack,
-      });
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        res.status(400).send({
+          message: 'Некорректный айди карточки',
+        });
+      } else {
+        res.status(500).send({
+          message: 'Internal Server Error',
+          err: err.message,
+          stack: err.stack,
+        });
+      }
     });
 };
 
