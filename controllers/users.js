@@ -65,12 +65,18 @@ const createUser = (req, res) => {
 };
 
 const updateMe = (req, res) => {
-  if ((req.body.name.length < 2) || (req.body.about.length < 2)
-  || (req.body.name.length > 30) || (req.body.about.length > 30)) {
+  if (req.body.name && ((req.body.name.length < 2) || (req.body.name.length > 30))) {
     return res.status(400).send({
       message: 'Переданы некорректные данные при обновлении профиля',
     });
   }
+
+  if (req.body.about && ((req.body.about.length < 2) || (req.body.about.length > 30))) {
+    return res.status(400).send({
+      message: 'Переданы некорректные данные при обновлении профиля',
+    });
+  }
+
   return userModel.findByIdAndUpdate(req.user._id, { name: req.body.name, about: req.body.about })
     .then(() => res.status(200).send({ name: req.body.name, about: req.body.about }))
     .catch((err) => {
