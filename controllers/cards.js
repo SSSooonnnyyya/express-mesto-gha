@@ -43,16 +43,43 @@ const createCard = (req, res) => {
 };
 
 const deleteCard = async (req, res) => {
-  const card = await cardModel.findById(req.params.cardId);
+  const card = await cardModel.findById(req.params.cardId)
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        res.status(400).send({
+          message: 'Некорректный айди карточки',
+        });
+      } else {
+        res.status(500).send({
+          message: 'Internal Server Error',
+          err: err.message,
+          stack: err.stack,
+        });
+      }
+    });
+
   if (!card) {
     return res.status(404).send({
       message: 'Карточка не найдена',
     });
   }
+
   if (card.owner._id.toString() === req.user._id) {
     return cardModel.findByIdAndRemove(req.params.cardId)
       .then((dbCard) => res.send({ card: dbCard }))
-      .catch((err) => res.status(500).send({ err }));
+      .catch((err) => {
+        if (err instanceof mongoose.Error.CastError) {
+          res.status(400).send({
+            message: 'Некорректный айди карточки',
+          });
+        } else {
+          res.status(500).send({
+            message: 'Internal Server Error',
+            err: err.message,
+            stack: err.stack,
+          });
+        }
+      });
   }
   return res.status(400).send({
     message: 'Нельзя удалять чужие карточки',
