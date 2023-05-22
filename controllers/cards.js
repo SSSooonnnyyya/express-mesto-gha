@@ -4,6 +4,7 @@ const cardModel = require('../models/card');
 const getCards = (req, res) => {
   cardModel
     .find({})
+    .populate(['owner', 'likes'])
     .then((cards) => {
       res.send(cards);
     })
@@ -42,8 +43,35 @@ const createCard = (req, res) => {
     });
 };
 
-const deleteCard = async (req, res) => {
-  const card = await cardModel.findById(req.params.cardId)
+const deleteCard = (req, res) => {
+  cardModel.findById(req.params.cardId)
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({
+          message: 'Карточка не найдена',
+        });
+      }
+      if (card.owner._id.toString() === req.user._id) {
+        return cardModel.findByIdAndRemove(req.params.cardId)
+          .then((dbCard) => res.send({ card: dbCard }))
+          .catch((err) => {
+            if (err instanceof mongoose.Error.CastError) {
+              res.status(400).send({
+                message: 'Некорректный айди карточки',
+              });
+            } else {
+              res.status(500).send({
+                message: 'Internal Server Error',
+                err: err.message,
+                stack: err.stack,
+              });
+            }
+          });
+      }
+      return res.status(403).send({
+        message: 'Нельзя удалять чужие карточки',
+      });
+    })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         res.status(400).send({
@@ -57,33 +85,6 @@ const deleteCard = async (req, res) => {
         });
       }
     });
-
-  if (!card) {
-    return res.status(404).send({
-      message: 'Карточка не найдена',
-    });
-  }
-
-  if (card.owner._id.toString() === req.user._id) {
-    return cardModel.findByIdAndRemove(req.params.cardId)
-      .then((dbCard) => res.send({ card: dbCard }))
-      .catch((err) => {
-        if (err instanceof mongoose.Error.CastError) {
-          res.status(400).send({
-            message: 'Некорректный айди карточки',
-          });
-        } else {
-          res.status(500).send({
-            message: 'Internal Server Error',
-            err: err.message,
-            stack: err.stack,
-          });
-        }
-      });
-  }
-  return res.status(400).send({
-    message: 'Нельзя удалять чужие карточки',
-  });
 };
 
 const likeCard = (req, res) => {

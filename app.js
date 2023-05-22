@@ -17,9 +17,9 @@ app.use((req, res, next) => {
 
 app.use(router);
 
-app.use((req, res) => {
+/* app.use((req, res) => {
   res.status(404).json({ message: 'Not found' });
-});
+}); */
 
 app.listen(3000, () => {
   console.log('Server is running on port 3000');
