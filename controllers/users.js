@@ -130,7 +130,7 @@ const login = (req, res, next) => {
       res.status(200).send({ token });
     })
     .catch((err) => {
-      if (err.message === 'UnauthoriszedError') {
+      if (err.message === 'UnauthorizedError') {
         next(new BaseError(401, 'Email или пароль неверный'));
       } else {
         next(err);
