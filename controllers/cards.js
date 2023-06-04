@@ -43,7 +43,7 @@ const deleteCard = (req, res, next) => {
           .then((dbCard) => res.send({ card: dbCard }))
           .catch((err) => {
             if (err instanceof mongoose.Error.CastError) {
-              next(new BaseError(400, 'Некорректный айди карточки'));
+              next(new BaseError(403, 'Некорректный айди карточки'));
             } else {
               next(err);
             }
@@ -53,7 +53,7 @@ const deleteCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        next(new BaseError(400, 'Некорректный айди карточки'));
+        next(new BaseError(403, 'Некорректный айди карточки'));
       } else {
         next(err);
       }
@@ -74,7 +74,7 @@ const likeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        next(new BaseError(400, 'Некорректный айди карточки'));
+        next(new BaseError(403, 'Некорректный айди карточки'));
       } else {
         next(err);
       }
@@ -96,7 +96,7 @@ const dislikeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        next(new BaseError(400, 'Некорректный айди карточки'));
+        next(new BaseError(403, 'Некорректный айди карточки'));
       } else {
         next(err);
       }

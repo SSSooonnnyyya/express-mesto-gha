@@ -42,9 +42,21 @@ const validateCardBody = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     link: Joi.string().required(),
-    owner: Joi.string().required(),
+    owner: Joi.string(),
     likes: Joi.array().required().default([]),
     createdAt: Joi.date().default(Date.now),
+  }),
+});
+
+const validateUserId = celebrate({
+  params: Joi.object().keys({
+    user_id: Joi.string().required().min(10),
+  }),
+});
+
+const validateCardId = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().required().min(10),
   }),
 });
 
@@ -54,4 +66,6 @@ module.exports = {
   validateCardBody,
   validateUpdateMeBody,
   validateUpdateMeAvatar,
+  validateUserId,
+  validateCardId,
 };

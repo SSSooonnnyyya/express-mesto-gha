@@ -21,9 +21,7 @@ const getUserById = (req, res, next) => {
       if (user) {
         res.send(user);
       } else {
-        res.status(404).send({
-          message: 'Пользователь не найден',
-        });
+        next(new BaseError(404, 'Пользователь не найден'));
       }
     })
     .catch((err) => {
@@ -138,7 +136,24 @@ const login = (req, res, next) => {
     });
 };
 
-const getMe = (req, res) => res.status(200).send(req.user);
+const getMe = (req, res, next) => {
+  userModel
+    .findById(req.user._id)
+    .then((user) => {
+      if (user) {
+        res.send(user);
+      } else {
+        next(new BaseError(404, 'Пользователь не найден'));
+      }
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        next(new BaseError(400, 'Неверный айди пользователя'));
+        return;
+      }
+      next(err);
+    });
+};
 
 module.exports = {
   getUsers,
