@@ -41,7 +41,7 @@ const validateUpdateMeAvatar = celebrate({
 const validateCardBody = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required(),
+    link: Joi.string().pattern(/(http|https):\/\/(w{3}\.)?[\w-]+\.[\w\-._~:\/?#[\]@!$&'()*+,;=]+#?/).required(),
     owner: Joi.string(),
     likes: Joi.array().default([]),
     createdAt: Joi.date().default(Date.now),
