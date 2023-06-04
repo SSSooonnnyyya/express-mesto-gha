@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const cardModel = require('../models/card');
+const BaseError = require('../utils/errors');
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   cardModel
     .find({})
     .populate(['owner', 'likes'])
@@ -9,15 +10,11 @@ const getCards = (req, res) => {
       res.send(cards);
     })
     .catch((err) => {
-      res.status(500).send({
-        message: 'Internal Server Error',
-        err: err.message,
-        stack: err.stack,
-      });
+      next(err);
     });
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   cardModel
     .create({
       ...req.body,
@@ -28,66 +25,42 @@ const createCard = (req, res) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(400).send({
-          message: 'Некорректные данные при создании карточки',
-          err: err.message,
-          stack: err.stack,
-        });
+        next(new BaseError(400, 'Некорректные данные при создании карточки'));
       } else {
-        res.status(500).send({
-          message: 'Internal Server Error',
-          err: err.message,
-          stack: err.stack,
-        });
+        next(err);
       }
     });
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   cardModel.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        return res.status(404).send({
-          message: 'Карточка не найдена',
-        });
+        return next(new BaseError(404, 'Карточка не найдена'));
       }
       if (card.owner._id.toString() === req.user._id) {
         return cardModel.findByIdAndRemove(req.params.cardId)
           .then((dbCard) => res.send({ card: dbCard }))
           .catch((err) => {
             if (err instanceof mongoose.Error.CastError) {
-              res.status(400).send({
-                message: 'Некорректный айди карточки',
-              });
+              next(new BaseError(400, 'Некорректный айди карточки'));
             } else {
-              res.status(500).send({
-                message: 'Internal Server Error',
-                err: err.message,
-                stack: err.stack,
-              });
+              next(err);
             }
           });
       }
-      return res.status(403).send({
-        message: 'Нельзя удалять чужие карточки',
-      });
+      return next(new BaseError(403, 'Нельзя удалять чужие карточки'));
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({
-          message: 'Некорректный айди карточки',
-        });
+        next(new BaseError(400, 'Некорректный айди карточки'));
       } else {
-        res.status(500).send({
-          message: 'Internal Server Error',
-          err: err.message,
-          stack: err.stack,
-        });
+        next(err);
       }
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   cardModel.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
@@ -95,29 +68,20 @@ const likeCard = (req, res) => {
   )
     .then((dbCard) => {
       if (dbCard) {
-        res.send({ card: dbCard });
-      } else {
-        res.status(404).send({
-          message: 'Карточка не найдена',
-        });
+        return res.send({ card: dbCard });
       }
+      return next(new BaseError(404, 'Карточка не найдена'));
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({
-          message: 'Некорректный айди карточки',
-        });
+        next(new BaseError(400, 'Некорректный айди карточки'));
       } else {
-        res.status(500).send({
-          message: 'Internal Server Error',
-          err: err.message,
-          stack: err.stack,
-        });
+        next(err);
       }
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   cardModel.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
@@ -127,22 +91,14 @@ const dislikeCard = (req, res) => {
       if (dbCard) {
         res.send({ card: dbCard });
       } else {
-        res.status(404).send({
-          message: 'Карточка не найдена',
-        });
+        next(new BaseError(404, 'Карточка не найдена'));
       }
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(400).send({
-          message: 'Некорректный айди карточки',
-        });
+        next(new BaseError(400, 'Некорректный айди карточки'));
       } else {
-        res.status(500).send({
-          message: 'Internal Server Error',
-          err: err.message,
-          stack: err.stack,
-        });
+        next(err);
       }
     });
 };

@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { errors } = require('celebrate');
 const router = require('./routes');
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb')
@@ -8,18 +9,14 @@ const app = express();
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '6469012cb4cae5586803ad74',
-  };
-  next();
-});
-
 app.use(router);
-
-/* app.use((req, res) => {
-  res.status(404).json({ message: 'Not found' });
-}); */
+app.use(errors());
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  // console.log(`eeerrrorr${err.message}`);
+  const { statusCode = 500, message = 'Ошибка' } = err;
+  res.status(statusCode).send({ message });
+});
 
 app.listen(3000, () => {
   console.log('Server is running on port 3000');
