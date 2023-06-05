@@ -14,8 +14,12 @@ app.use(errors());
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   // console.log(`eeerrrorr${err.message}`);
-  const { statusCode = 500, message = 'Ошибка' } = err;
-  res.status(statusCode).send({ message });
+  const { statusCode = 500, message } = err;
+  if (statusCode === 500) {
+    res.status(statusCode).send({ message: 'Internal Server Error' });
+  } else {
+    res.status(statusCode).send({ message });
+  }
 });
 
 app.listen(3000, () => {

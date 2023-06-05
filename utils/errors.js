@@ -1,8 +1,43 @@
-class BaseError extends Error {
-  constructor(statusCode, message) {
+/* eslint-disable max-classes-per-file */
+class NotFoundError extends Error {
+  constructor(message) {
     super(message);
-    this.statusCode = statusCode;
+    this.statusCode = 404;
   }
 }
 
-module.exports = BaseError;
+class BadRequestError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 400;
+  }
+}
+
+class ConflictRequestError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 409;
+  }
+}
+
+class UnauthorisedError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 401;
+  }
+}
+
+class ForbiddenError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 403;
+  }
+}
+
+module.exports = {
+  ForbiddenError,
+  NotFoundError,
+  BadRequestError,
+  ConflictRequestError,
+  UnauthorisedError,
+};

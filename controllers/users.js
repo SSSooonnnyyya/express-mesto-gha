@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const validator = require('validator');
 const userModel = require('../models/user');
-const BaseError = require('../utils/errors');
+const {
+  NotFoundError,
+  BadRequestError,
+  ConflictRequestError,
+  UnauthorisedError,
+} = require('../utils/errors');
 const { signToken } = require('../utils/jwtAuth');
 
 const getUsers = async (req, res, next) => {
@@ -21,12 +25,12 @@ const getUserById = (req, res, next) => {
       if (user) {
         res.send(user);
       } else {
-        next(new BaseError(404, 'Пользователь не найден'));
+        next(new NotFoundError('Пользователь не найден'));
       }
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        next(new BaseError(400, 'Неверный айди пользователя'));
+        next(new BadRequestError('Неверный айди пользователя'));
         return;
       }
       next(err);
@@ -37,12 +41,7 @@ const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  if (!(validator.isEmail(email))) {
-    return next(new BaseError(400, 'Некорректные email'));
-    /* return res.status(400).send({
-      message: 'Некорректные email',
-    }); */
-  }
+
   return bcrypt.hash(password, 10).then((hash) => {
     // Store hash in your password DB.
     userModel
@@ -56,9 +55,9 @@ const createUser = (req, res, next) => {
       })
       .catch((err) => {
         if (err.code === 11000) {
-          next(new BaseError(409, 'Такой пользователь уже существует'));
+          next(new ConflictRequestError('Такой пользователь уже существует'));
         } else if (err instanceof mongoose.Error.ValidationError) {
-          next(new BaseError(400, 'Некорректные данные при создании пользователя'));
+          next(new BadRequestError('Некорректные данные при создании пользователя'));
         } else {
           next(err);
         }
@@ -75,13 +74,12 @@ const updateMe = (req, res, next) => userModel.findByIdAndUpdate(
     if (user) {
       res.status(200).send(user);
     } else {
-      next(new BaseError(404, 'Пользователь не найден'));
+      next(new NotFoundError('Пользователь не найден'));
     }
   })
   .catch((err) => {
-    if (err instanceof mongoose.Error.ValidationError
-        || err instanceof mongoose.Error.CastError) {
-      next(new BaseError(400, 'Переданы некорректные данные при обновлении профиля'));
+    if (err instanceof mongoose.Error.ValidationError) {
+      next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
     } else {
       next(err);
     }
@@ -97,13 +95,12 @@ const updateMeAvatar = (req, res, next) => {
       if (user) {
         res.status(200).send(user);
       } else {
-        next(new BaseError(404, 'Пользователь не найден'));
+        next(new NotFoundError('Пользователь не найден'));
       }
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError
-        || err instanceof mongoose.Error.CastError) {
-        next(new BaseError(400, 'Переданы некорректные данные при обновлении аватара'));
+      if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError('Переданы некорректные данные при обновлении аватара'));
       } else {
         next(err);
       }
@@ -119,7 +116,7 @@ const login = (req, res, next) => {
     .then((user) => Promise.all([user, bcrypt.compare(password, user.password)]))
     .then(([user, isEqual]) => {
       if (!isEqual) {
-        next(new BaseError(401, 'Email или пароль неверный'));
+        next(new UnauthorisedError('Email или пароль неверный'));
         return;
       }
 
@@ -129,7 +126,7 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.message === 'UnauthorizedError') {
-        next(new BaseError(401, 'Email или пароль неверный'));
+        next(new UnauthorisedError('Email или пароль неверный'));
       } else {
         next(err);
       }
@@ -143,16 +140,10 @@ const getMe = (req, res, next) => {
       if (user) {
         res.send(user);
       } else {
-        next(new BaseError(404, 'Пользователь не найден'));
+        next(new NotFoundError('Пользователь не найден'));
       }
     })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        next(new BaseError(400, 'Неверный айди пользователя'));
-        return;
-      }
-      next(err);
-    });
+    .catch(next);
 };
 
 module.exports = {

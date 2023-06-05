@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 const cardModel = require('../models/card');
-const BaseError = require('../utils/errors');
+const {
+  NotFoundError,
+  BadRequestError,
+  ForbiddenError,
+} = require('../utils/errors');
 
 const getCards = (req, res, next) => {
   cardModel
@@ -25,7 +29,7 @@ const createCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        next(new BaseError(400, 'Некорректные данные при создании карточки'));
+        next(new BadRequestError('Некорректные данные при создании карточки'));
       } else {
         next(err);
       }
@@ -36,24 +40,17 @@ const deleteCard = (req, res, next) => {
   cardModel.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        return next(new BaseError(404, 'Карточка не найдена'));
+        return next(new NotFoundError('Карточка не найдена'));
       }
       if (card.owner._id.toString() === req.user._id) {
         return cardModel.findByIdAndRemove(req.params.cardId)
-          .then((dbCard) => res.send({ card: dbCard }))
-          .catch((err) => {
-            if (err instanceof mongoose.Error.CastError) {
-              next(new BaseError(403, 'Некорректный айди карточки'));
-            } else {
-              next(err);
-            }
-          });
+          .then((dbCard) => res.send({ card: dbCard }));
       }
-      return next(new BaseError(403, 'Нельзя удалять чужие карточки'));
+      return next(new ForbiddenError('Нельзя удалять чужие карточки'));
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        next(new BaseError(403, 'Некорректный айди карточки'));
+        next(new ForbiddenError('Некорректный айди карточки'));
       } else {
         next(err);
       }
@@ -70,11 +67,11 @@ const likeCard = (req, res, next) => {
       if (dbCard) {
         return res.send({ card: dbCard });
       }
-      return next(new BaseError(404, 'Карточка не найдена'));
+      return next(new NotFoundError('Карточка не найдена'));
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        next(new BaseError(403, 'Некорректный айди карточки'));
+        next(new ForbiddenError('Некорректный айди карточки'));
       } else {
         next(err);
       }
@@ -91,12 +88,12 @@ const dislikeCard = (req, res, next) => {
       if (dbCard) {
         res.send({ card: dbCard });
       } else {
-        next(new BaseError(404, 'Карточка не найдена'));
+        next(new NotFoundError('Карточка не найдена'));
       }
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        next(new BaseError(403, 'Некорректный айди карточки'));
+        next(new ForbiddenError('Некорректный айди карточки'));
       } else {
         next(err);
       }

@@ -10,10 +10,13 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    // eslint-disable-next-line no-useless-escape
+    match: /(http|https):\/\/(w{3}\.)?[\w-]+\.[\w\-._~:\/?#[\]@!$&'()*+,;=]+#?/,
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
+    required: true,
   },
   likes: {
     type: [mongoose.Schema.Types.ObjectId],

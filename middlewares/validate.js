@@ -24,9 +24,9 @@ const validateLoginBody = celebrate({
 
 const validateUpdateMeBody = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().min(2).max(30)
+    name: Joi.string().min(2).max(30).required()
       .default('Жак-Ив Кусто'),
-    about: Joi.string().min(2).max(30)
+    about: Joi.string().min(2).max(30).required()
       .default('Исследователь'),
   }),
 });
@@ -34,29 +34,27 @@ const validateUpdateMeBody = celebrate({
 const validateUpdateMeAvatar = celebrate({
   body: Joi.object().keys({
     // eslint-disable-next-line no-useless-escape
-    avatar: Joi.string().pattern(/(http|https):\/\/(w{3}\.)?[\w-]+\.[\w\-._~:\/?#[\]@!$&'()*+,;=]+#?/).default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png'),
+    avatar: Joi.string().required().pattern(/(http|https):\/\/(w{3}\.)?[\w-]+\.[\w\-._~:\/?#[\]@!$&'()*+,;=]+#?/).default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png'),
   }),
 });
 
 const validateCardBody = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
+    // eslint-disable-next-line no-useless-escape
     link: Joi.string().pattern(/(http|https):\/\/(w{3}\.)?[\w-]+\.[\w\-._~:\/?#[\]@!$&'()*+,;=]+#?/).required(),
-    owner: Joi.string(),
-    likes: Joi.array().default([]),
-    createdAt: Joi.date().default(Date.now),
   }),
 });
 
 const validateUserId = celebrate({
   params: Joi.object().keys({
-    user_id: Joi.string().required().min(10),
+    user_id: Joi.string().required().hex().length(24),
   }),
 });
 
 const validateCardId = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required().min(10),
+    cardId: Joi.string().required().hex().length(24),
   }),
 });
 
