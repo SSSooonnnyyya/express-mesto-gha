@@ -111,7 +111,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
   userModel.findOne({ email }).select('+password')
     .orFail(() => {
-      throw new Error('UnauthorizedError');
+      throw new UnauthorisedError('Email или пароль неверный');
     })
     .then((user) => Promise.all([user, bcrypt.compare(password, user.password)]))
     .then(([user, isEqual]) => {
@@ -124,13 +124,7 @@ const login = (req, res, next) => {
 
       res.status(200).send({ token });
     })
-    .catch((err) => {
-      if (err.message === 'UnauthorizedError') {
-        next(new UnauthorisedError('Email или пароль неверный'));
-      } else {
-        next(err);
-      }
-    });
+    .catch(next);
 };
 
 const getMe = (req, res, next) => {
